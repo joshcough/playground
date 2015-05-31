@@ -35,12 +35,12 @@ object MyJsonProtocol extends DefaultJsonProtocol {
 object Main {
   import MyJsonProtocol._
   def main(args: Array[String]): Unit = {
-    val json = Color("CadetBlue", RGB(95, 158, 160)).toJson
+    val colorJson = Color("CadetBlue", RGB(95, 158, 160)).toJson
     println(List(
-      ("json", json)
-     ,("json.convertTo[Color]", json.convertTo[Color])
-     ,("round-trip", json.convertTo[Color].toJson)
-     ,("round-trip equality", json.convertTo[Color].toJson == json)
+      ("colorJson", colorJson)
+     ,("colorJson.convertTo[Color]", colorJson.convertTo[Color])
+     ,("round-trip", colorJson.convertTo[Color].toJson)
+     ,("round-trip equality", colorJson.convertTo[Color].toJson == colorJson)
     ).mkString("\n", "\n\n", "\n"))
   }
 }
