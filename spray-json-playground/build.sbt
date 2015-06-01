@@ -12,6 +12,7 @@ libraryDependencies ++= Seq(
  ,"joda-time" % "joda-time" % "2.7"
  ,"org.scala-lang" % "scala-reflect" % scalaVersion.value
  ,"org.scalaz" %% "scalaz-core" % "7.1.2"
+ ,"io.argonaut" %% "argonaut" % "6.2-SNAPSHOT"
 )
 
 ideaExcludeFolders += ".idea"
