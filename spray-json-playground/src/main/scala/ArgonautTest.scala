@@ -20,6 +20,40 @@ object ArgonautTest {
     msr.map{ case m: Map[String, RGB] => m.toList.head match { case (k, rgb) => Color(k, rgb) } }
   }
 
+  implicit def TopDecodeJson: DecodeJson[Top] = jdecode1L(Top.apply)("query")
+
+  // created": "2013-11-06T04:18:34Z"  // what the heck is the T?
+  //val queryDateDecoder: DecodeJson[DateTime] = dateDecoder("yyyy-dd-MMh:mm aa")
+  implicit def QueryDecodeJson: DecodeJson[Query] = {
+    //implicit val f = queryDateDecoder
+    jdecode5L(Query.apply)("count", "created", "lang", "diagnostics", "results")
+  }
+
+  implicit def ResultsDecodeJson: DecodeJson[Results] = jdecode1L(Results.apply)("channel")
+
+  //{"sunrise": "6:37 am", "sunset": "5:06 pm"}
+  val astronomyDateDecoder: DecodeJson[DateTime] = dateDecoder("h:mm aa")
+  implicit def AstronomyDecodeJson: DecodeJson[Astronomy] = {
+    implicit val f = astronomyDateDecoder
+    jdecode2L(Astronomy.apply)("sunrise", "sunset")
+  }
+  //"pubDate": "Tue, 05 Nov 2013 7:55 pm PST",
+  val itemDateDecoder: DecodeJson[DateTime] = dateDecoder("EEE, dd MMM yyyy h:mm aa zzz")
+  implicit def ItemDecodeJson: DecodeJson[Item] = {
+    implicit val f = itemDateDecoder
+    jdecode9L(Item.apply)("title", "lat", "long", "link", "pubDate", "condition", "description", "forecast", "guid")
+  }
+
+  val channelDateDecoder: DecodeJson[DateTime] = dateDecoder("EEE, dd MMM yyyy h:mm aa zzz")
+  implicit def ChannelDecodeJson: DecodeJson[Channel] = {
+    implicit val c = channelDateDecoder
+    jdecode13L(Channel.apply)(
+      "title", "link", "description", "language", "lastBuildDate", "ttl", "location",
+      "units", "wind", "atmosphere", "astronomy", "image", "item")
+  }
+
+  implicit def ImageCodecJson: CodecJson[Image] =
+    casecodec5(Image.apply, Image.unapply)("title", "width", "height", "link", "url")
   implicit def DiagnosticsCodecJson: CodecJson[Diagnostics] =
     casecodec5(Diagnostics.apply, Diagnostics.unapply)("publiclyCallable", "url", "user-time", "service-time", "build-version")
   implicit def UrlCodecJson: CodecJson[Url] =
@@ -47,15 +81,24 @@ object ArgonautTest {
   }
 
   def main (args: Array[String]): Unit = {
-    println(test[Color]("""{"CadetBlue": {"red":95,"green":158,"blue":160}}"""))
-    println(test[Guid](testGuid))
-    println(test[Forecast](testForcast))
-    println(test[DateTime]("\"9 Nov 2013\"")(forecastDateDecoder))
-    //println(test[DateTime]("\"9 Goo 2013\"")(forecastDateDecoder))
-    println(test[DateTime]("\"Tue, 05 Nov 2013 7:55 PM PST\"")(conditionDateDecoder))
-    println(test[Condition](testCondition))
-    println(test[Url](testUrl))
-    println(test[Diagnostics](testDiagnostics))
+    List(
+       test[Color]("""{"CadetBlue": {"red":95,"green":158,"blue":160}}""")
+      ,test[Guid](testGuid)
+      ,test[Forecast](testForcast)
+      ,test[DateTime]("\"9 Nov 2013\"")(forecastDateDecoder)
+      //,test[DateTime]("\"9 Goo 2013\"")(forecastDateDecoder)
+      ,test[DateTime]("\"Tue, 05 Nov 2013 7:55 PM PST\"")(conditionDateDecoder)
+      ,test[Condition](testCondition)
+      ,test[Url](testUrl)
+      ,test[Diagnostics](testDiagnostics)
+      ,test[Astronomy](testAstronomy)
+      ,test[Image](testImage)
+      ,test[Item](testItem)
+      ,test[Channel](testChannel)
+      ,test[Results](testResults)
+      ,test[Query](testQuery)
+      ,test[Top](megaTest)
+    ).foreach(println)
   }
 
   def test[A: DecodeJson](s: String) = Parse.decodeEither[A](s)
